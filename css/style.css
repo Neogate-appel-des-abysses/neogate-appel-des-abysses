@@ -266,7 +266,7 @@ p{max-width:900px;margin:0 auto;font-size:clamp(.95rem,2.4vw,1.18rem);line-heigh
 #startBtn{
     position:absolute;
     left:50%;
-    bottom:13%;
+    bottom:16%;
     transform:translateX(-50%);
     z-index:10;
 }
@@ -276,4 +276,15 @@ p{max-width:900px;margin:0 auto;font-size:clamp(.95rem,2.4vw,1.18rem);line-heigh
   line-height:1.6;
   color:var(--text);
   text-shadow:0 0 18px #000,0 0 26px var(--red);
+}
+@media (max-width:700px){
+
+  #startBtn{
+      bottom:19%;
+      padding:12px 18px;
+      font-size:.82rem;
+      letter-spacing:1px;
+      white-space:nowrap;
+  }
+
 }
