@@ -563,20 +563,50 @@ function runShopExitAction(){
 const routeParams=new URLSearchParams(window.location.search);
 const route=routeParams.get("route");
 
+function clearRoute(){
+  window.history.replaceState({},document.title,window.location.pathname);
+}
+
+if(route==="appel"){
+  startScreen.style.display="none";
+  phase="appel-intro";
+  showAppel();
+  play(V.intro,{muted:false});
+  clearRoute();
+}
+
+if(route==="reveil"){
+  startScreen.style.display="none";
+  showHurlement();
+  clearRoute();
+}
+
+if(route==="fuite"){
+  startScreen.style.display="none";
+  showFuite();
+  clearRoute();
+}
+
+if(route==="offrande"){
+  startScreen.style.display="none";
+  showOffrande();
+  clearRoute();
+}
+
 if(route==="piege1"){
   startScreen.style.display="none";
   startTrap("piege1");
-  window.history.replaceState({},document.title,window.location.pathname);
+  clearRoute();
 }
 
 if(route==="piege2"){
   startScreen.style.display="none";
   startTrap("piege2");
-  window.history.replaceState({},document.title,window.location.pathname);
+  clearRoute();
 }
 
 if(route==="attaque"){
   startScreen.style.display="none";
   startAttack();
-  window.history.replaceState({},document.title,window.location.pathname);
+  clearRoute();
 }
