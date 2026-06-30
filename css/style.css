@@ -1,0 +1,259 @@
+:root{
+--gold:#d6b36a;
+--bronze:#a67c3d;
+--text:#e8dcc2;
+--red:#8b0000;
+--green:#7aff7a;
+--black:#000;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;min-height:100%;background:#000;color:var(--text);font-family:"Cinzel",serif;overflow-x:hidden}
+#bgVideo{position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain;background:#000;z-index:0}
+#shadow{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:1;pointer-events:none}
+.screen{position:relative;z-index:2;min-height:100vh;width:100%;display:flex;justify-content:center;align-items:center;text-align:center;padding:28px;transition:opacity 1.2s ease}
+.hidden{display:none;opacity:0}.visible{display:flex;opacity:1}
+.panel{width:min(920px,100%);padding:24px 20px;text-shadow:0 0 10px #000}.small-panel{width:auto}
+h1{font-family:"Cinzel Decorative",serif;font-size:clamp(1.9rem,5vw,3.2rem);letter-spacing:3px;color:var(--gold);text-shadow:0 0 15px #000,0 0 25px var(--red);margin:0 0 24px}
+p{max-width:900px;margin:0 auto;font-size:clamp(.95rem,2.4vw,1.18rem);line-height:1.75}.small{font-size:.88rem;color:#cfc1a0}.status{margin-top:22px;color:#d9cba7}
+.counter-title{margin-top:34px;font-size:1.08rem;letter-spacing:2px;color:#c8a96a}.counter{font-size:clamp(2.8rem,10vw,5rem);font-weight:800;color:var(--green);text-shadow:0 0 15px #004400,0 0 25px #000;margin-top:8px}
+.ritual-button{margin-top:28px;padding:16px 28px;font-family:"Cinzel Decorative",serif;font-size:clamp(.92rem,2.6vw,1.1rem);letter-spacing:2px;color:var(--text);background:linear-gradient(145deg,#1b130d,#3b2415);border:2px solid var(--bronze);box-shadow:0 0 20px #000,0 0 12px #5b0000 inset;cursor:pointer;transition:opacity 1.2s ease,box-shadow .35s ease,background .35s ease,transform .15s ease}.ritual-button:hover{background:linear-gradient(145deg,#3b2415,#5c1d1d);box-shadow:0 0 20px var(--red)}.ritual-button:active{transform:scale(.98)}.locked{display:none!important}.fade-in{animation:fadeIn 1.4s ease forwards}@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.progress-wrap{width:min(760px,92vw);height:36px;border:1px solid #807050;background:rgba(0,0,0,.55);margin:24px auto 8px;box-shadow:0 0 12px #000 inset}.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#136b42,#7aff7a);transition:width .07s linear}.choices{display:grid;grid-template-columns:1fr;gap:16px;max-width:680px;margin:28px auto}.choice{display:block;width:100%;padding:18px 22px;font-family:"Cinzel",serif;color:var(--text);background:rgba(15,10,8,.82);border:1px solid var(--bronze);box-shadow:0 0 18px #000;cursor:pointer}.choice strong{display:block;font-family:"Cinzel Decorative",serif;color:var(--gold);font-size:1.2rem;margin-bottom:8px}.timer{font-size:clamp(2.8rem,10vw,5rem);font-weight:800;color:var(--green);text-shadow:0 0 15px #004400,0 0 25px #000;margin:28px 0}
+.shop{background:rgba(0,0,0,.68);border:1px solid #5f4a29;padding:18px;margin:16px auto;max-width:520px}.shop h2{color:var(--gold);margin:0 0 10px}
+#debug{position:fixed;left:8px;right:8px;bottom:8px;z-index:50;display:none;background:rgba(0,0,0,.76);color:#ffb3b3;font-size:12px;padding:8px;text-align:left;font-family:monospace}
+@media(max-width:700px){#bgVideo{object-fit:contain}.screen{align-items:flex-start;padding:42px 18px 28px}.small-panel{align-items:center;margin:auto}.panel{padding:12px 6px}p{line-height:1.55}.counter-title{margin-top:24px}.progress-wrap{height:28px}}
+.camera-box{width:min(720px,92vw);margin:22px auto 8px;border:1px solid var(--bronze);box-shadow:0 0 22px #000;background:#000;padding:6px}
+#cameraPreview{display:block;width:100%;max-height:48vh;object-fit:contain;background:#000}
+.camera-help{max-width:760px;margin-top:14px;line-height:1.55}
+/* Fonds vidéo boutique */
+.shop-bg-video{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  object-fit:cover;
+  z-index:0;
+  background:#000;
+  pointer-events:none;
+}
+
+.shop-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  background:rgba(0,0,0,.18);
+  pointer-events:none;
+}
+
+.shop-page{
+  position:relative;
+  z-index:2;
+}
+
+/* === Boutique intégrée V4 === */
+.shop-ui{
+  position:fixed;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+}
+
+.shop-stage{
+  position:fixed;
+  left:50%;
+  top:50%;
+  width:min(100vw,150vh);
+  height:min(100vh,66.6667vw);
+  aspect-ratio:3/2;
+  transform:translate(-50%,-50%);
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.shop-content{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .9s ease;
+}
+
+.shop-content.visible{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.product-zone{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  overflow:hidden;
+  background:rgba(0,0,0,.045);
+  backdrop-filter:blur(1px);
+  -webkit-backdrop-filter:blur(1px);
+  mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%);
+}
+
+.product-zone.clan{
+  top:14.6%;
+  width:68%;
+  height:31.8%;
+}
+
+.product-zone.standard{
+  top:62.5%;
+  width:80%;
+  height:23.8%;
+}
+
+.product-track{
+  display:flex;
+  align-items:center;
+  gap:clamp(10px,1.2vw,16px);
+  width:max-content;
+  height:100%;
+  animation:scrollProducts 44s linear infinite;
+}
+
+.product-zone.standard .product-track{
+  animation-duration:58s;
+}
+
+.product-zone:hover .product-track{
+  animation-play-state:paused;
+}
+
+.product-card{
+  width:clamp(118px,12.2vw,186px);
+  height:91%;
+  padding:clamp(5px,.65vw,9px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  text-align:center;
+  opacity:0;
+  transform:translateY(10px);
+  background:
+    radial-gradient(circle at 50% 18%,rgba(80,220,235,.10),transparent 38%),
+    linear-gradient(to bottom,rgba(4,14,16,.34),rgba(0,0,0,.56));
+  border:1px solid rgba(214,179,106,.34);
+  box-shadow:
+    0 0 18px rgba(0,0,0,.78),
+    inset 0 0 14px rgba(80,220,235,.055);
+  animation:
+    cardReveal .7s ease forwards,
+    floatCard 4.2s ease-in-out infinite;
+}
+
+.product-card:nth-child(1){animation-delay:.08s,.9s}
+.product-card:nth-child(2){animation-delay:.16s,1.05s}
+.product-card:nth-child(3){animation-delay:.24s,1.2s}
+.product-card:nth-child(4){animation-delay:.32s,1.35s}
+.product-card:nth-child(5){animation-delay:.40s,1.5s}
+.product-card:nth-child(6){animation-delay:.48s,1.65s}
+.product-card:nth-child(7){animation-delay:.56s,1.8s}
+.product-card:nth-child(8){animation-delay:.64s,1.95s}
+.product-card:nth-child(9){animation-delay:.72s,2.1s}
+.product-card:nth-child(10){animation-delay:.80s,2.25s}
+.product-card:nth-child(11){animation-delay:.88s,2.4s}
+.product-card:nth-child(12){animation-delay:.96s,2.55s}
+.product-card:nth-child(13){animation-delay:1.04s,2.7s}
+.product-card:nth-child(14){animation-delay:1.12s,2.85s}
+
+.product-card img{
+  width:100%;
+  height:48%;
+  object-fit:contain;
+  filter:drop-shadow(0 0 8px rgba(0,0,0,.9));
+}
+
+.product-card img[src$=".gif"]{
+  filter:
+    drop-shadow(0 0 8px rgba(0,0,0,.95))
+    drop-shadow(0 0 7px rgba(214,179,106,.22));
+}
+
+.product-card h2{
+  margin:.42em 0 .26em;
+  min-height:2.28em;
+  font-family:"Cinzel Decorative",serif;
+  font-size:clamp(.58rem,.78vw,.78rem);
+  line-height:1.14;
+  letter-spacing:.04em;
+  color:var(--gold);
+  text-shadow:0 0 8px #000;
+}
+
+.product-card p{
+  flex:1;
+  margin:0;
+  font-size:clamp(.48rem,.66vw,.65rem);
+  line-height:1.24;
+  color:var(--text);
+  text-shadow:0 0 6px #000;
+}
+
+.price{
+  margin-top:.35em;
+  font-family:"Cinzel Decorative",serif;
+  font-size:clamp(.78rem,1.08vw,1.08rem);
+  color:#e0bd72;
+  text-shadow:0 0 8px #000;
+}
+
+.fake-note{
+  margin-top:.15em;
+  font-size:clamp(.38rem,.5vw,.51rem);
+  letter-spacing:.08em;
+  color:#b8aa87;
+}
+
+.shop-actions{
+  position:absolute;
+  left:50%;
+  bottom:2.15%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:clamp(8px,1.2vw,16px);
+  justify-content:center;
+  width:94%;
+  opacity:0;
+  animation:actionsReveal .7s ease forwards;
+  animation-delay:1.15s;
+}
+
+.shop-actions .ritual-button{
+  margin-top:0;
+  padding:clamp(9px,.9vw,12px) clamp(12px,1.6vw,22px);
+  font-size:clamp(.62rem,1.05vw,.98rem);
+  background:linear-gradient(145deg,rgba(12,8,5,.88),rgba(42,22,12,.9));
+}
+
+@keyframes scrollProducts{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+@keyframes cardReveal{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes floatCard{
+  0%,100%{translate:0 0}
+  50%{translate:0 -4px}
+}
+
+@keyframes actionsReveal{
+  from{opacity:0;transform:translate(-50%,8px)}
+  to{opacity:1;transform:translate(-50%,0)}
+}
+
+@media(max-width:760px){
+  .product-card p{display:none}
+  .product-card img{height:56%}
+  .fake-note{display:none}
+  .product-zone.clan{top:15.2%;height:30.6%;width:72%}
+  .product-zone.standard{top:62.6%;height:22.8%;width:82%}
+}
