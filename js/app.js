@@ -593,20 +593,28 @@ if(route==="offrande"){
   clearRoute();
 }
 
-if(route==="piege1"){
+function routeButton(label, action){
   startScreen.style.display="none";
-  startTrap("piege1");
-  clearRoute();
+  show(`
+    <div class="panel">
+      <button id="routeStart" class="ritual-button">${label}</button>
+    </div>
+  `);
+
+  document.getElementById("routeStart").onclick=()=>{
+    action();
+    clearRoute();
+  };
+}
+
+if(route==="piege1"){
+  routeButton("Franchir le passage",()=>startTrap("piege1"));
 }
 
 if(route==="piege2"){
-  startScreen.style.display="none";
-  startTrap("piege2");
-  clearRoute();
+  routeButton("Franchir le passage",()=>startTrap("piege2"));
 }
 
 if(route==="attaque"){
-  startScreen.style.display="none";
-  startAttack();
-  clearRoute();
+  routeButton("Franchir le passage",()=>startAttack());
 }
