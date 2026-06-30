@@ -13,7 +13,10 @@ const V={
   fin:"videos/fin.mp4",
   ouverture:"videos/ouverture.mp4",
   reveil:"videos/reveil.mp4",
-  attaque:"videos/attaque.mp4"
+  attaque:"videos/attaque.mp4",
+  accueil:"videos/accueil.mp4",
+  piege1:"videos/piege1.mp4",
+  piege2:"videos/piege2.mp4",
 };
 
 const SHOP={
@@ -79,6 +82,7 @@ let timer=null;
 let cameraStream=null;
 let activeShop=null;
 let pendingShopAction=null;
+let activeTrap=null;
 
 function err(message){
   debug.style.display="block";
@@ -135,13 +139,24 @@ function omegaize(root){
 video.addEventListener("error",()=>err("Erreur vidéo: "+(video.currentSrc||video.src)));
 
 video.addEventListener("ended",()=>{
-  if(phase==="relique"){
+  if(phase==="accueil-video"){
+    phase="relique";
+    play(V.relique,{muted:false});
+  }else if(phase==="relique"){
     phase="appel-intro";
     showAppel();
     play(V.intro,{muted:false});
   }else if(phase==="appel-intro"){
     phase="appel-boucle";
     play(V.boucle,{loop:true,muted:false});
+  }else if(phase==="ouverture"){
+    showHurlement();
+  }else if(phase==="reveil"){
+    showFuite();
+  }else if(phase==="trap"){
+    showTrapMessage();
+  }else if(phase==="attaque"){
+    showOffrande();
   }else if(phase==="shop-opening"){
     showShopProducts();
   }else if(phase==="shop-exit"){
@@ -149,10 +164,12 @@ video.addEventListener("ended",()=>{
   }
 });
 
+startBtn.textContent="Répondre à l'appel";
+
 startBtn.addEventListener("click",()=>{
   startScreen.style.display="none";
-  phase="relique";
-  play(V.relique,{muted:false});
+  phase="accueil-video";
+  play(V.accueil,{muted:false});
 });
 
 async function showAppel(){
@@ -178,9 +195,12 @@ async function showAppel(){
       setTimeout(()=>document.getElementById("next").classList.remove("locked"),2000);
     }
 
-    document.getElementById("next").onclick=()=>{
-      transitionTo(showHurlement);
-    };
+document.getElementById("next").onclick=()=>{
+  hide();
+  phase="ouverture";
+  play(V.ouverture,{muted:false});
+};
+
   }catch(e){
     document.getElementById("count").textContent="Erreur Firebase";
   }
@@ -224,7 +244,11 @@ function showHurlement(){
   `);
 
   document.getElementById("mic").onclick=startMic;
-  document.getElementById("toFuite").onclick=()=>transitionTo(showFuite);
+  document.getElementById("toFuite").onclick=()=>{
+  hide();
+  phase="reveil";
+  play(V.reveil,{muted:false});
+};
 }
 
 async function startMic(){
@@ -242,36 +266,61 @@ async function startMic(){
     analyser.fftSize=2048;
     source.connect(analyser);
 
-    let start=null;
     let valid=false;
-    document.getElementById("mic").style.display="none";
+let accumulated=0;
+let lastTime=performance.now();
+const targetSeconds=10;
 
-    function loop(){
-      if(valid)return;
-      analyser.getByteTimeDomainData(data);
-      let max=0;
-      for(const x of data)max=Math.max(max,Math.abs(x-128));
-      const pct=Math.min(100,Math.round(max*1.25));
-      intensity.textContent=pct+" %";
-      bar.style.width=pct+"%";
+document.getElementById("mic").style.display="none";
 
-      if(pct>=80){
-        if(!start)start=Date.now();
-        const seconds=Math.floor((Date.now()-start)/1000);
-        status.textContent="Maintenez l'horreur... "+seconds+" / 5 secondes";
-        if(Date.now()-start>=5000){
-          valid=true;
-          status.textContent="Vos cris ont retardé l'inévitable.";
-          btn.classList.remove("locked");
-          omegaize(status.parentElement);
-        }
-      }else{
-        start=null;
-        status.textContent="Hurlez plus fort pour atteindre l'intensité requise.";
-      }
-      requestAnimationFrame(loop);
-    }
+function loop(){
+  if(valid)return;
 
+  const now=performance.now();
+  const delta=(now-lastTime)/1000;
+  lastTime=now;
+
+  analyser.getByteTimeDomainData(data);
+  let max=0;
+  for(const x of data)max=Math.max(max,Math.abs(x-128));
+  const pct=Math.min(100,Math.round(max*1.25));
+
+  intensity.textContent=pct+" %";
+  bar.style.width=(accumulated/targetSeconds*100)+"%";
+
+  if(pct>=80){
+
+  accumulated=Math.min(targetSeconds,accumulated+delta);
+
+  status.textContent=
+    "Continuez à hurler... "+
+    accumulated.toFixed(1)+
+    " / "+
+    targetSeconds+
+    " s";
+
+}else{
+
+  status.textContent=
+    "Hurlez plus fort. Progression conservée : "+
+    accumulated.toFixed(1)+
+    " / "+
+    targetSeconds+
+    " s";
+
+}
+
+  if(accumulated>=targetSeconds){
+    valid=true;
+    bar.style.width="100%";
+    status.textContent="Vos cris ont retardé l'inévitable.";
+    btn.classList.remove("locked");
+    omegaize(status.parentElement);
+    return;
+  }
+
+  requestAnimationFrame(loop);
+}
     loop();
   }catch(e){
     status.textContent="Micro refusé ou indisponible.";
@@ -291,10 +340,10 @@ function showFuite(){
       </p>
       <div id="timer" class="timer">60:00</div>
       <p id="fuiteMsg" class="status">Les abysses vous observent aussi.</p>
-      <button id="camera" class="ritual-button">Autoriser la caméra</button>
       <div id="cameraBox" class="camera-box locked">
         <video id="cameraPreview" autoplay playsinline muted></video>
       </div>
+      <button id="camera" class="ritual-button">Autoriser la caméra</button>
       <p class="small camera-help">
         Si cliquer ne vous aide pas, c'est sûrement que la bête joue avec votre esprit : défiez-la en ouvrant directement votre appareil photo. Vous devancerez peut-être même le monstre pour fuir.
       </p>
@@ -354,6 +403,38 @@ function stopCamera(){
     cameraStream.getTracks().forEach(track=>track.stop());
     cameraStream=null;
   }
+}
+
+function startTrap(name){
+  stopCamera();
+  clearInterval(timer);
+  activeTrap=name;
+  hide();
+  phase="trap";
+  play(V[name],{muted:false});
+}
+
+function startAttack(){
+  stopCamera();
+  clearInterval(timer);
+  hide();
+  phase="attaque";
+  play(V.attaque,{muted:false});
+}
+
+function showTrapMessage(){
+  show(`
+    <div class="panel">
+      <p class="trap-message">
+        Vous échappez de peu au monstre et revenez en tremblant sur vos pas.
+      </p>
+    </div>
+  `);
+
+  setTimeout(()=>{
+    activeTrap=null;
+    showFuite();
+  },4200);
 }
 
 function showOffrande(){
@@ -478,4 +559,24 @@ function runShopExitAction(){
       </div>
     `);
   }
+}
+const routeParams=new URLSearchParams(window.location.search);
+const route=routeParams.get("route");
+
+if(route==="piege1"){
+  startScreen.style.display="none";
+  startTrap("piege1");
+  window.history.replaceState({},document.title,window.location.pathname);
+}
+
+if(route==="piege2"){
+  startScreen.style.display="none";
+  startTrap("piege2");
+  window.history.replaceState({},document.title,window.location.pathname);
+}
+
+if(route==="attaque"){
+  startScreen.style.display="none";
+  startAttack();
+  window.history.replaceState({},document.title,window.location.pathname);
 }
