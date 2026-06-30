@@ -258,15 +258,18 @@ p{max-width:900px;margin:0 auto;font-size:clamp(.95rem,2.4vw,1.18rem);line-heigh
   .product-zone.standard{top:62.6%;height:22.8%;width:82%}
 }
 #startScreen{
-  background:url("../images/accueil.gif") center center/contain no-repeat #000;
-  align-items:flex-end;
-  padding-bottom:12vh;
+    background:url("../images/accueil.gif") center center/contain no-repeat #000;
+    position:relative;
+    overflow:hidden;
 }
 
 #startBtn{
-  margin-bottom:4vh;
+    position:absolute;
+    left:50%;
+    bottom:13%;
+    transform:translateX(-50%);
+    z-index:10;
 }
-
 .trap-message{
   font-family:"Cinzel Decorative",serif;
   font-size:clamp(1.2rem,4vw,2.4rem);
