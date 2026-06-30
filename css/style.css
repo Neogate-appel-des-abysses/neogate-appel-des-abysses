@@ -266,7 +266,7 @@ p{max-width:900px;margin:0 auto;font-size:clamp(.95rem,2.4vw,1.18rem);line-heigh
 #startBtn{
     position:absolute;
     left:50%;
-    bottom:16%;
+    bottom:19%;
     transform:translateX(-50%);
     z-index:10;
 }
