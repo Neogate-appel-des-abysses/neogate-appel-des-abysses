@@ -80,6 +80,7 @@ const OBJECTIF=100;
 let phase="start";
 let timer=null;
 let cameraStream=null;
+let cameraScanFrame=null;
 let activeShop=null;
 let pendingShopAction=null;
 let activeTrap=null;
@@ -387,11 +388,45 @@ async function startCamera(){
 
   try{
     stopCamera();
-    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+
+    cameraStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"}},
+      audio:false
+    });
+
     preview.srcObject=cameraStream;
     box.classList.remove("locked");
     msg.textContent="La caméra s'ouvre. Cherchez les passages. Méfiez-vous des faux seuils.";
     omegaize(app);
+
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
+
+    function scan(){
+      if(!cameraStream || !preview.videoWidth){
+        cameraScanFrame=requestAnimationFrame(scan);
+        return;
+      }
+
+      canvas.width=preview.videoWidth;
+      canvas.height=preview.videoHeight;
+      ctx.drawImage(preview,0,0,canvas.width,canvas.height);
+
+      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const code=jsQR(imageData.data,canvas.width,canvas.height);
+
+      if(code && code.data){
+        msg.textContent="Un passage a été trouvé...";
+        stopCamera();
+        window.location.href=code.data;
+        return;
+      }
+
+      cameraScanFrame=requestAnimationFrame(scan);
+    }
+
+    scan();
+
   }catch(e){
     msg.textContent="La caméra refuse de s'ouvrir. La bête joue peut-être avec votre esprit.";
     omegaize(app);
@@ -399,6 +434,11 @@ async function startCamera(){
 }
 
 function stopCamera(){
+  if(cameraScanFrame){
+    cancelAnimationFrame(cameraScanFrame);
+    cameraScanFrame=null;
+  }
+
   if(cameraStream){
     cameraStream.getTracks().forEach(track=>track.stop());
     cameraStream=null;
