@@ -94,11 +94,24 @@ function play(src,{loop=false,muted=false}={}){
   video.pause();
   video.removeAttribute("src");
   video.load();
+
+  video.classList.remove("story-video","shop-video");
+
+  if(src.includes("boutique")){
+    video.classList.add("shop-video");
+  }else{
+    video.classList.add("story-video");
+  }
+
   video.loop=loop;
   video.muted=muted;
   video.src=src;
   video.load();
-  return video.play().catch(()=>err("Vidéo bloquée ou introuvable: "+src));
+
+  return video.play().catch(e=>{
+    console.error(e);
+    err("Vidéo bloquée : "+src);
+  });
 }
 
 function playLoopBackground(){
@@ -390,11 +403,17 @@ async function startCamera(){
     stopCamera();
 
     cameraStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:"environment"}},
+      video:{
+        facingMode:{ideal:"environment"},
+        width:{ideal:1280},
+        height:{ideal:720}
+      },
       audio:false
     });
 
     preview.srcObject=cameraStream;
+    await preview.play();
+
     box.classList.remove("locked");
     msg.textContent="La caméra s'ouvre. Cherchez les passages. Méfiez-vous des faux seuils.";
     omegaize(app);
@@ -403,7 +422,7 @@ async function startCamera(){
     const ctx=canvas.getContext("2d",{willReadFrequently:true});
 
     function scan(){
-      if(!cameraStream || !preview.videoWidth){
+      if(!cameraStream || preview.readyState<2 || !preview.videoWidth){
         cameraScanFrame=requestAnimationFrame(scan);
         return;
       }
@@ -413,7 +432,16 @@ async function startCamera(){
       ctx.drawImage(preview,0,0,canvas.width,canvas.height);
 
       const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-      const code=jsQR(imageData.data,canvas.width,canvas.height);
+
+      let code=null;
+
+      try{
+        code=jsQR(imageData.data,canvas.width,canvas.height,{
+          inversionAttempts:"attemptBoth"
+        });
+      }catch(e){
+        console.error(e);
+      }
 
       if(code && code.data){
         msg.textContent="Un passage a été trouvé...";
@@ -428,6 +456,7 @@ async function startCamera(){
     scan();
 
   }catch(e){
+    console.error(e);
     msg.textContent="La caméra refuse de s'ouvrir. La bête joue peut-être avec votre esprit.";
     omegaize(app);
   }
